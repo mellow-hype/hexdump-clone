@@ -2,13 +2,13 @@
 #include <stdlib.h>
 
 
-
 int hexdump(char * byte_buffer)
 {
 
     return 0;
 }
 
+// Calculate the file size
 unsigned long get_file_size(FILE *file_ptr)
 {
     unsigned long file_len;
@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
     if (argc > 2 || argc < 2)
     {
         printf("usage: %s <filename>\n", argv[0]);
-        return 1;
+        return 0;
     }
 
     FILE *fileptr;
@@ -34,8 +34,12 @@ int main(int argc, char *argv[])
     char *target_file_path = argv[1];
 
     fileptr = fopen(target_file_path, "rb");    // fopen in binary mode
-    file_len = get_file_size(fileptr);
+    if (fileptr)
+        file_len = get_file_size(fileptr);
+    else
+        printf("Error: file could not be opened for reading. Exiting.\n");
+        return 0;
 
     fclose(fileptr);
-    return 0;
+    return 1;
 }
