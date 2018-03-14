@@ -35,14 +35,14 @@ int hexdump(FILE *f_buffer)
         fread(chunk_buf, 1, CHUNK_SIZE, f_buffer);
         
         // Print the file offset and begin looping through the bytes in the buffer
-        printf("0x%08x:| ", chunk_seg);
+        printf("%08x| ", chunk_seg);
         for (int i = 0; i < CHUNK_SIZE; i+=2)
         {
             unsigned char a, b;
             a = (unsigned char)chunk_buf[i];
             b = (unsigned char)chunk_buf[i+1];
             
-            printf("%02x%02x ", a, b);
+            printf("%02x%02x ", b, a);
         }
 
         printf("\n");
