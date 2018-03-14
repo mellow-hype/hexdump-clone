@@ -9,7 +9,6 @@ unsigned long get_file_size(FILE *file_ptr);
 int hexdump(FILE *f_buffer);
 
 
-
 int hexdump(FILE *f_buffer)
 {
     unsigned long f_size = get_file_size(f_buffer);
