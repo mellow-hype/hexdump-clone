@@ -1,10 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define CHUNK_SIZE 0x10
 
+//  Function declarations
 unsigned long get_file_size(FILE *file_ptr);
 int hexdump(FILE *f_buffer);
+
 
 
 int hexdump(FILE *f_buffer)
@@ -13,8 +16,11 @@ int hexdump(FILE *f_buffer)
     unsigned int chunks = (f_size / CHUNK_SIZE);
     unsigned int leftover_chunk_size = (f_size % CHUNK_SIZE);
     unsigned int chunk_seg;
-    
     unsigned int c = 0;
+    
+    // Print the header
+    printf("%-8s|  0 1  2 3  4 5  6 7  8 9  A B  C D  E F \n", "-offset-");
+
     while (c < chunks)
     {
         //  Calculate the offset into the file
@@ -35,7 +41,7 @@ int hexdump(FILE *f_buffer)
         fread(chunk_buf, 1, CHUNK_SIZE, f_buffer);
         
         // Print the file offset and begin looping through the bytes in the buffer
-        printf("%08x| ", chunk_seg);
+        printf("%08x: ", chunk_seg);
         for (int i = 0; i < CHUNK_SIZE; i+=2)
         {
             unsigned char a, b;
@@ -65,8 +71,11 @@ int hexdump(FILE *f_buffer)
             return 0;
         }
 
+        // Read bytes into the newly allocated buffer
         fread(chunk_buf, 1, CHUNK_SIZE, f_buffer);
-        printf("0x%08x:| ", chunk_seg);
+
+        // Print the file offset and begin looping through the bytes in the buffer
+        printf("0x%08x: ", chunk_seg);
         for (int i = 0; i < leftover_chunk_size; i+=2)
         {
             unsigned char a, b;
@@ -87,32 +96,33 @@ int hexdump(FILE *f_buffer)
 unsigned long get_file_size(FILE *file_ptr)
 {
     unsigned long file_len;
-
-    fseek(file_ptr, 0, SEEK_END);                // seek to end of file
-    file_len = ftell(file_ptr);
-    rewind(file_ptr);
+    fseek(file_ptr, 0, SEEK_END);               // seek to end of file
+    file_len = ftell(file_ptr);                 // get position to calculate size
+    rewind(file_ptr);                           // move position back to start
     return file_len;
 }
 
 
 int main(int argc, char *argv[])
 {
+    char *target_file_path = argv[1];
+    FILE *fileptr;
+    // Ensure two arguments were given
     if (argc > 2 || argc < 2)
     {
         printf("usage: %s <filename>\n", argv[0]);
         return 0;
     }
 
-    FILE *fileptr;
-    char *target_file_path = argv[1];
-
-    fileptr = fopen(target_file_path, "rb");    // fopen in binary mode
+    // Open the file for reading in binary mode
+    fileptr = fopen(target_file_path, "rb");
     if (!fileptr)
     {
         printf("Error: file could not be opened for reading. Exiting.\n");
         return 0;
     }
 
+    // Call hexdump, return
     if (hexdump(fileptr) == 0)
     {
         fclose(fileptr);
