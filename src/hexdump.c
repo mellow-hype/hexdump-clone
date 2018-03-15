@@ -7,9 +7,11 @@
 //  Function declarations
 unsigned long get_file_size(FILE *file_ptr);
 unsigned char * hex_chunk_alloc(int chunk_size);
+int hexdump_chunk_print(char *chunk, unsigned int chunk_s, int chunk_seg);
 int hexdump(FILE *f_buffer);
 
 
+// Print the formatted hex dump of the given chunk
 int hexdump_chunk_print(char *chunk, unsigned int chunk_s, int chunk_seg)
 {
         // Print the file offset and begin looping through the bytes in the buffer
@@ -25,11 +27,13 @@ int hexdump_chunk_print(char *chunk, unsigned int chunk_s, int chunk_seg)
 }
 
 
+// Allocate a chunk of memory to hold the bytes 
 unsigned char * hex_chunk_alloc(int chunk_size)
 {
-    // Allocate memory and ensure there were no errors
     unsigned char *chunk_buf = NULL;
     chunk_buf = (unsigned char *)malloc(((chunk_size)*sizeof(unsigned char)));
+    
+    // Ensure there were no errors
     if (!chunk_buf)
     {
         printf("Allocation of memory failed\n");
@@ -51,32 +55,32 @@ int hexdump(FILE *f_buffer)
     // Print the header
     printf("%-8s|  0 1  2 3  4 5  6 7  8 9  A B  C D  E F \n", "-offset-");
 
+    // Iterate through the chunks
     for (unsigned int c = 0; c < chunks; c++)
     {
-        //  Calculate the offset into the file
+        //  Calculate file offset for display
         chunk_seg = c * CHUNK_SIZE;
         
         // Allocate memory and ensure there were no errors
         chunk_buf = hex_chunk_alloc(CHUNK_SIZE);
-
-        // Read 16 bytes from the file pointer into the newly allocated buffer
         fread(chunk_buf, 1, CHUNK_SIZE, f_buffer);
         
+        // hexdump the chunk
         hexdump_chunk_print(chunk_buf, CHUNK_SIZE, chunk_seg);
         free(chunk_buf);
     }
 
+    // Deal with the last chunk
     if (leftover_chunk_size)
     {
-        //  Calculate the offset into the file
+        //  Calculate file offset for display (increment this time)
         chunk_seg += CHUNK_SIZE;
 
         // Allocate memory and ensure there were no errors
         chunk_buf = hex_chunk_alloc(leftover_chunk_size);
-
-        // Read 16 bytes from the file pointer into the newly allocated buffer
         fread(chunk_buf, 1, leftover_chunk_size, f_buffer);
         
+        // hexdump the chunk
         hexdump_chunk_print(chunk_buf, leftover_chunk_size, chunk_seg);
         free(chunk_buf);
     }
@@ -100,6 +104,7 @@ int main(int argc, char *argv[])
 {
     char *target_file_path = argv[1];
     FILE *fileptr;
+    
     // Ensure two arguments were given
     if (argc > 2 || argc < 2)
     {
