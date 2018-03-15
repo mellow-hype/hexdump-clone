@@ -10,11 +10,11 @@ unsigned char * hex_chunk_alloc(int chunk_size);
 int hexdump(FILE *f_buffer);
 
 
-int hexdump_chunk_print(char *chunk, unsigned int chunk_size, int chunk_seg)
+int hexdump_chunk_print(char *chunk, unsigned int chunk_s, int chunk_seg)
 {
         // Print the file offset and begin looping through the bytes in the buffer
         printf("%08x: ", chunk_seg);
-        for (int i = 0; i < CHUNK_SIZE; i+=2)
+        for (int i = 0; i < chunk_s; i+=2)
         {
             unsigned char a, b;
             a = (unsigned char)chunk[i];
