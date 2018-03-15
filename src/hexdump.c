@@ -6,7 +6,38 @@
 
 //  Function declarations
 unsigned long get_file_size(FILE *file_ptr);
+unsigned char * hex_chunk_alloc(int chunk_size);
 int hexdump(FILE *f_buffer);
+
+
+int hexdump_chunk_print(char *chunk, unsigned int chunk_size, int chunk_seg)
+{
+        // Print the file offset and begin looping through the bytes in the buffer
+        printf("%08x: ", chunk_seg);
+        for (int i = 0; i < CHUNK_SIZE; i+=2)
+        {
+            unsigned char a, b;
+            a = (unsigned char)chunk[i];
+            b = (unsigned char)chunk[i+1];
+            printf("%02x%02x ", b, a);
+        }
+        printf("\n");
+}
+
+
+unsigned char * hex_chunk_alloc(int chunk_size)
+{
+    // Allocate memory and ensure there were no errors
+    unsigned char *chunk_buf = NULL;
+    chunk_buf = (unsigned char *)malloc(((chunk_size)*sizeof(unsigned char)));
+    if (!chunk_buf)
+    {
+        printf("Allocation of memory failed\n");
+        return 0;
+    }
+    return chunk_buf;
+
+}
 
 
 int hexdump(FILE *f_buffer)
@@ -15,76 +46,39 @@ int hexdump(FILE *f_buffer)
     unsigned int chunks = (f_size / CHUNK_SIZE);
     unsigned int leftover_chunk_size = (f_size % CHUNK_SIZE);
     unsigned int chunk_seg;
-    unsigned int c = 0;
+    unsigned char *chunk_buf = NULL;
     
     // Print the header
     printf("%-8s|  0 1  2 3  4 5  6 7  8 9  A B  C D  E F \n", "-offset-");
 
-    while (c < chunks)
+    for (unsigned int c = 0; c < chunks; c++)
     {
         //  Calculate the offset into the file
         chunk_seg = c * CHUNK_SIZE;
-        c++;
         
         // Allocate memory and ensure there were no errors
-        unsigned char *chunk_buf = NULL;
-        chunk_buf = (unsigned char *)malloc(((CHUNK_SIZE)*sizeof(unsigned char)));
+        chunk_buf = hex_chunk_alloc(CHUNK_SIZE);
 
-        if (!chunk_buf)
-        {
-            printf("Allocation of memory failed\n");
-            return 0;
-        }
-
-        // Read bytes into the newly allocated buffer
+        // Read 16 bytes from the file pointer into the newly allocated buffer
         fread(chunk_buf, 1, CHUNK_SIZE, f_buffer);
         
-        // Print the file offset and begin looping through the bytes in the buffer
-        printf("%08x: ", chunk_seg);
-        for (int i = 0; i < CHUNK_SIZE; i+=2)
-        {
-            unsigned char a, b;
-            a = (unsigned char)chunk_buf[i];
-            b = (unsigned char)chunk_buf[i+1];
-            
-            printf("%02x%02x ", b, a);
-        }
-
-        printf("\n");
+        hexdump_chunk_print(chunk_buf, CHUNK_SIZE, chunk_seg);
         free(chunk_buf);
-
     }
 
     if (leftover_chunk_size)
     {
         //  Calculate the offset into the file
-        chunk_seg = c * CHUNK_SIZE;
+        chunk_seg += CHUNK_SIZE;
 
         // Allocate memory and ensure there were no errors
-        unsigned char *chunk_buf = NULL;
-        chunk_buf = (unsigned char *)malloc(((leftover_chunk_size)*sizeof(unsigned char)));
+        chunk_buf = hex_chunk_alloc(leftover_chunk_size);
 
-        if (!chunk_buf)
-        {
-            printf("Allocation of memory failed\n");
-            return 0;
-        }
-
-        // Read bytes into the newly allocated buffer
-        fread(chunk_buf, 1, CHUNK_SIZE, f_buffer);
-
-        // Print the file offset and begin looping through the bytes in the buffer
-        printf("0x%08x: ", chunk_seg);
-        for (int i = 0; i < leftover_chunk_size; i+=2)
-        {
-            unsigned char a, b;
-            a = (unsigned char)chunk_buf[i];
-            b = (unsigned char)chunk_buf[i+1];
-            printf("%02x%02x ", a, b);
-        }
-        printf("\n");
+        // Read 16 bytes from the file pointer into the newly allocated buffer
+        fread(chunk_buf, 1, leftover_chunk_size, f_buffer);
+        
+        hexdump_chunk_print(chunk_buf, leftover_chunk_size, chunk_seg);
         free(chunk_buf);
-
     }
 
     printf("[+] File size: %lu\n", f_size);
